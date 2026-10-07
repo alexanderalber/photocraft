@@ -10,9 +10,16 @@ use crate::error::{PsdError, Result};
 use crate::header::{Version, row_bytes};
 use crate::io::{Reader, WriteExt};
 
-/// Maximum number of decoded bytes a single decode call may produce. Guards
-/// against decompression bombs from tiny inputs.
-pub const MAX_DECODED_BYTES: u64 = 1 << 31;
+/// Maximum number of decoded bytes a single decode call may produce: 8 GiB on
+/// 64-bit targets, 2 GiB elsewhere (the same budget as `photocraft-codecs`'
+/// default `Limits::max_alloc`).
+///
+/// The decoders bound their output by their input on their own (RLE expands
+/// at most 64x, Raw needs every byte present), so this is a backstop against
+/// decompression bombs, not the main guard. It has to fit real PSBs: a
+/// 30000² RGB merged image is 2.7 GB, and a 33000² 16-bit layer channel is
+/// 2.2 GB, both of which a 2 GiB cap turned into empty layers (#375).
+pub const MAX_DECODED_BYTES: u64 = if cfg!(target_pointer_width = "64") { 8 << 30 } else { 2 << 30 };
 
 /// Compression method stored before channel / image data.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -201,7 +208,10 @@ pub fn decode_planes(compression: Compression, data: &[u8], layout: &PlaneLayout
             if data.len() < total {
                 return Err(PsdError::UnexpectedEof { offset: data.len(), needed: total - data.len() });
             }
-            Ok(data[..total].to_vec())
+            let mut out = Vec::new();
+            out.try_reserve_exact(total).map_err(|_| PsdError::LimitExceeded("not enough memory for the decoded channel data"))?;
+            out.extend_from_slice(&data[..total]);
+            Ok(out)
         }
         Compression::Rle => decode_rle(data, layout, total),
         Compression::Zip => zip_decompress(data, total),
@@ -302,7 +312,9 @@ fn decode_rle(data: &[u8], layout: &PlaneLayout, total: usize) -> Result<Vec<u8>
     if (total as u64) > (r.remaining() as u64).saturating_mul(64) {
         return Err(PsdError::Decompress("RLE data too short for declared size".into()));
     }
-    let mut out = Vec::with_capacity(total);
+    // Up to MAX_DECODED_BYTES: report a machine without that much memory instead of aborting.
+    let mut out = Vec::new();
+    out.try_reserve_exact(total).map_err(|_| PsdError::LimitExceeded("not enough memory for the decoded channel data"))?;
     for c in counts {
         let row = r.bytes(c)?;
         packbits::decode_into(row, rb, &mut out)?;
@@ -642,6 +654,16 @@ mod tests {
         let l = layout(56, 300_000, 300_000, 32, Version::Psb);
         assert!(matches!(l.decoded_len(), Err(PsdError::LimitExceeded(_))));
         assert!(decode_planes(Compression::Rle, &[0; 16], &l).is_err());
+    }
+
+    /// Real PSBs go past 2 GiB in one decode (#375): a 30000² RGB merged image and a 33000²
+    /// 16-bit layer channel. Only checks the limit, so nothing is allocated.
+    #[test]
+    #[cfg(target_pointer_width = "64")]
+    fn decoded_len_allows_large_psb_planes() {
+        assert_eq!(layout(3, 30_000, 30_000, 8, Version::Psb).decoded_len().unwrap(), 2_700_000_000);
+        assert_eq!(layout(1, 33_000, 33_000, 16, Version::Psb).decoded_len().unwrap(), 2_178_000_000);
+        assert!(layout(4, 40_000, 40_000, 16, Version::Psb).decoded_len().is_err());
     }
 
     #[test]
