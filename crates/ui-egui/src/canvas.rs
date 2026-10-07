@@ -57,7 +57,19 @@ pub struct Drag {
 
 impl Drag {
     pub fn new(tool: Tool, start: [f64; 2], points: Vec<[f64; 3]>, modifiers: egui::Modifiers, erase: bool) -> Self {
-        Self { tool, start, points, modifiers, erase, constrain: None, live: modifiers, released: egui::Modifiers::NONE, reposition: false, sel_move: None, lasso: None }
+        Self {
+            tool,
+            start,
+            points,
+            modifiers,
+            erase,
+            constrain: None,
+            live: modifiers,
+            released: egui::Modifiers::NONE,
+            reposition: false,
+            sel_move: None,
+            lasso: None,
+        }
     }
 
     /// Reposition: move the start and every point so the last one lands on `to` (same size).
@@ -2320,6 +2332,11 @@ pub fn tool_event(app: &mut PhotocraftApp, ev: ToolEvent, mods: egui::Modifiers)
     }
     // Window › Modifier Keys: sticky Shift/⌘/⌥ act as held keys.
     let mods = crate::workspace_ui::sticky_mods(app, mods);
+    // ⌘⌥⌃-click with any tool selects the topmost layer with pixels there (quick_pick.rs); it
+    // must run before the ⌃⌥ brush resize below, which the same keys would trigger.
+    if crate::quick_pick::pointer(app, ev, mods) {
+        return;
+    }
     // Control+Alt-drag or Alt+right-drag with a painting tool resizes the brush instead of
     // painting (#231, #297).
     if crate::brush_resize::pointer(app, ev, mods, armed) {

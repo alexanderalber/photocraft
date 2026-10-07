@@ -957,6 +957,8 @@
 	Divide…	Unterteilen…
 	Document	Dokument
 	Don't Save	Nicht speichern
+	No	Nein
+	Yes	Ja
 	Done	Fertig
 	Dots	Punkte
 	Drag a rectangle around the object	Ziehe ein Rechteck um das Objekt
@@ -2116,3 +2118,9 @@
 	Extend	Erweitern
 	Structure:	Struktur:
 	Content-Aware Move Tool	Inhaltsbasiert-verschieben-Werkzeug
+	TIFF Options	TIFF-Optionen
+	Including layers will increase file size.	Das Einbeziehen von Ebenen vergrößert die Datei.
+	Discard Layers and Save a Copy	Ebenen verwerfen und Kopie speichern
+	Don't show again	Nicht mehr anzeigen
+	Save failed: {error}	Speichern fehlgeschlagen: {error}
+	Save cancelled	Speichern abgebrochen

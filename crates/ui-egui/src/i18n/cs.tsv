@@ -976,6 +976,8 @@
 	Divide…	Rozdělit…
 	Document	Dokument
 	Don't Save	Neukládat
+	No	Ne
+	Yes	Ano
 	Done	Hotovo
 	Dots	Tečky
 	Drag a rectangle around the object	Táhněte obdélník kolem objektu
@@ -2020,7 +2022,6 @@
 	4 x 4	4 × 4
 	5 x 5	5 × 5
 	Grid:	Mřížka:
-
 # Rendering mode and recovery
 	Rendering Mode	Režim vykreslování
 	Automatic (recommended)	Automaticky (doporučeno)
@@ -2035,10 +2036,8 @@
 	Advanced	Pokročilé
 	GPU Backend	Backend GPU
 	Details	Podrobnosti
-
 	Rendering mode	Režim vykreslování
 	Freeze Lasso: drag to freeze an area, Alt-drag to thaw it (L)	Laso zmrazení: tažením zmrazíte oblast, tažením s klávesou Alt ji rozmrazíte (L)
-
 	Shadow Clipping Warning (U)	Varování oříznutí stínů (U)
 	Highlight Clipping Warning (O)	Varování oříznutí světel (O)
 	Show Lab Color Readouts	Zobrazit hodnoty barev Lab
@@ -2047,9 +2046,7 @@
 	Show Skin Tone Indicator	Zobrazit indikátor pleťových tónů
 	Tone Histogram	Histogram tónů
 	Show Selected Region	Zobrazit vybranou oblast
-
 cameraRaw	Light	Světlo
-
 # Camera Raw: contextual controls and window title
 	Camera Raw Filter ({layer})	Filtr Camera Raw ({layer})
 cameraRaw	Red	Červené
@@ -2076,3 +2073,9 @@ cameraRaw	Color	Barvy
 	Extend	Rozšířit
 	Structure:	Struktura:
 	Content-Aware Move Tool	Nástroj přesun s ohledem na obsah
+	TIFF Options	Možnosti TIFF
+	Including layers will increase file size.	Zahrnutí vrstev zvětší velikost souboru.
+	Discard Layers and Save a Copy	Zahodit vrstvy a uložit kopii
+	Don't show again	Příště nezobrazovat
+	Save failed: {error}	Uložení se nezdařilo: {error}
+	Save cancelled	Ukládání zrušeno

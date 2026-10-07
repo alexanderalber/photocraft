@@ -945,6 +945,8 @@
 	Divide…	Bagi…
 	Document	Dokumen
 	Don't Save	Jangan Simpan
+	No	Tidak
+	Yes	Ya
 	Done	Selesai
 	Dots	Titik
 	Drag a rectangle around the object	Seret persegi panjang di sekeliling objek
@@ -2492,3 +2494,9 @@ cameraRaw	Blending	Pembauran
 	Extend	Perluas
 	Structure:	Struktur:
 	Content-Aware Move Tool	Alat Content-Aware Move
+	TIFF Options	Opsi TIFF
+	Including layers will increase file size.	Menyertakan layer akan memperbesar ukuran file.
+	Discard Layers and Save a Copy	Buang Layer dan Simpan Salinan
+	Don't show again	Jangan tampilkan lagi
+	Save failed: {error}	Gagal menyimpan: {error}
+	Save cancelled	Penyimpanan dibatalkan

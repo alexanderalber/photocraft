@@ -948,6 +948,8 @@
 	Divide…	Dividir…
 	Document	Documento
 	Don't Save	Não salvar
+	No	Não
+	Yes	Sim
 	Done	Concluído
 	Dots	Pontos
 	Drag a rectangle around the object	Arraste um retângulo ao redor do objeto
@@ -2515,3 +2517,9 @@ cameraRaw	Whites	Brancos
 	Extend	Estender
 	Structure:	Estrutura:
 	Content-Aware Move Tool	Ferramenta Mover com reconhecimento de conteúdo
+	TIFF Options	Opções de TIFF
+	Including layers will increase file size.	Incluir as camadas aumentará o tamanho do arquivo.
+	Discard Layers and Save a Copy	Descartar camadas e salvar uma cópia
+	Don't show again	Não mostrar novamente
+	Save failed: {error}	Falha ao salvar: {error}
+	Save cancelled	Salvamento cancelado

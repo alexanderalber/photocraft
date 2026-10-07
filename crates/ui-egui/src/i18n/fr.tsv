@@ -951,6 +951,8 @@
 	Divide…	Diviser…
 	Document	Document
 	Don't Save	Ne pas enregistrer
+	No	Non
+	Yes	Oui
 	Done	Terminé
 	Dots	Points
 	Drag a rectangle around the object	Tracez un rectangle autour de l'objet
@@ -2505,3 +2507,9 @@ cameraRaw	Blending	Fusion
 	Extend	Extension
 	Structure:	Structure :
 	Content-Aware Move Tool	Outil Déplacement selon le contenu
+	TIFF Options	Options TIFF
+	Including layers will increase file size.	L'inclusion des calques augmentera la taille du fichier.
+	Discard Layers and Save a Copy	Supprimer les calques et enregistrer une copie
+	Don't show again	Ne plus afficher
+	Save failed: {error}	Échec de l'enregistrement : {error}
+	Save cancelled	Enregistrement annulé
