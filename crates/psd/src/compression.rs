@@ -354,10 +354,29 @@ pub fn zip_compress(data: &[u8]) -> Vec<u8> {
 
 /// Decompresses a zlib stream, requiring at least `expected` output bytes and
 /// returning exactly `expected`.
+///
+/// The output is reserved fallibly and read in chunks, never past `expected`
+/// bytes, so a stream declaring a huge size reports an error on a machine
+/// without that much memory instead of aborting.
 pub fn zip_decompress(data: &[u8], expected: usize) -> Result<Vec<u8>> {
-    let dec = flate2::read::ZlibDecoder::new(data);
-    let mut out = Vec::with_capacity(expected.min(data.len().saturating_mul(1032)));
-    dec.take(expected as u64).read_to_end(&mut out).map_err(|e| PsdError::Decompress(e.to_string()))?;
+    const OOM: PsdError = PsdError::LimitExceeded("not enough memory for the decoded channel data");
+    const CHUNK: usize = 1 << 20;
+    let mut dec = flate2::read::ZlibDecoder::new(data).take(u64::try_from(expected).unwrap_or(u64::MAX));
+    let mut out = Vec::new();
+    // Deflate expands at most ~1032:1, so this is the most a valid stream can need.
+    out.try_reserve_exact(expected.min(data.len().saturating_mul(1032))).map_err(|_| OOM)?;
+    let mut buf = vec![0u8; CHUNK.min(expected).max(1)];
+    loop {
+        let n = match dec.read(&mut buf) {
+            Ok(0) => break,
+            Ok(n) => n,
+            Err(e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
+            Err(e) => return Err(PsdError::Decompress(e.to_string())),
+        };
+        let chunk = buf.get(..n).ok_or_else(|| PsdError::Decompress("zlib reader overran its buffer".into()))?;
+        out.try_reserve(n).map_err(|_| OOM)?;
+        out.extend_from_slice(chunk);
+    }
     if out.len() < expected {
         return Err(PsdError::Decompress(format!("zlib stream produced {} of {} bytes", out.len(), expected)));
     }
@@ -463,6 +482,34 @@ mod tests {
         let dec = packbits::decode(&enc, src.len()).unwrap();
         assert_eq!(dec, src, "encoded: {enc:?}");
         enc
+    }
+
+    #[test]
+    fn zip_absurd_declared_size_is_an_error() {
+        let z = zip_compress(&[7u8; 64]);
+        for expected in [1usize << 40, usize::MAX / 2, usize::MAX] {
+            assert!(zip_decompress(&z, expected).is_err(), "expected {expected}");
+        }
+        // Through decode_planes: a tiny ZIP channel claiming a huge (but capped) plane.
+        let l = layout(1, 1 << 16, 1 << 15, 8, Version::Psb);
+        assert!(decode_planes(Compression::Zip, &z, &l).is_err());
+        assert!(decode_planes(Compression::ZipPrediction, &z, &l).is_err());
+        // Past MAX_DECODED_BYTES.
+        let l = layout(4, 1 << 20, 1 << 20, 32, Version::Psb);
+        assert!(decode_planes(Compression::Zip, &z, &l).is_err());
+        // Garbage that is not zlib at all.
+        assert!(zip_decompress(&[0xff; 16], 1 << 30).is_err());
+    }
+
+    #[test]
+    fn zip_decompress_exact_and_truncated() {
+        let src: Vec<u8> = (0..3_000_000u32).map(|i| (i % 251) as u8).collect();
+        let z = zip_compress(&src);
+        assert_eq!(zip_decompress(&z, src.len()).unwrap(), src);
+        // Asking for fewer bytes returns exactly that many.
+        assert_eq!(zip_decompress(&z, 1000).unwrap(), &src[..1000]);
+        assert!(zip_decompress(&z, src.len() + 1).is_err());
+        assert!(zip_decompress(&z, 0).unwrap().is_empty());
     }
 
     #[test]
